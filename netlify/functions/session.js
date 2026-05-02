@@ -18,26 +18,21 @@ exports.handler = async function(event) {
   try {
     let sdp = event.body || "";
 
-    // Netlify can sometimes pass request bodies as base64.
-    // If that happens, decode it back into normal SDP text.
     if (event.isBase64Encoded) {
       sdp = Buffer.from(sdp, "base64").toString("utf8");
     }
 
-    // Clean accidental whitespace.
     sdp = sdp.trim();
 
-    // A real WebRTC SDP offer should normally start with v=0.
-    // This gives us a clearer error if Netlify receives the wrong body.
     if (!sdp.startsWith("v=0")) {
       return {
         statusCode: 400,
         headers: { "Content-Type": "text/plain" },
         body:
-          "The request body received by the Netlify Function does not look like a valid SDP offer.\n\n" +
-          "Expected it to start with: v=0\n" +
-          "Received first 120 characters:\n" +
-          sdp.slice(0, 120)
+          "Invalid SDP received by Netlify Function.\n\n" +
+          "Expected SDP to start with v=0.\n\n" +
+          "Received first 200 characters:\n" +
+          sdp.slice(0, 200)
       };
     }
 
@@ -51,16 +46,26 @@ exports.handler = async function(event) {
       }
     });
 
-    const formData = new FormData();
-    formData.set("sdp", sdp);
-    formData.set("session", sessionConfig);
+    const boundary = "----openai-realtime-boundary-" + Date.now();
+
+    const multipartBody =
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="sdp"\r\n` +
+      `Content-Type: application/sdp\r\n\r\n` +
+      `${sdp}\r\n` +
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="session"\r\n` +
+      `Content-Type: application/json\r\n\r\n` +
+      `${sessionConfig}\r\n` +
+      `--${boundary}--\r\n`;
 
     const response = await fetch("https://api.openai.com/v1/realtime/calls", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": `multipart/form-data; boundary=${boundary}`
       },
-      body: formData
+      body: multipartBody
     });
 
     const responseText = await response.text();
