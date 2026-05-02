@@ -383,23 +383,35 @@ End the task after the final decision by saying:
           setStatus("Disconnected", "");
         };
 
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
+const tokenResponse = await fetch("/.netlify/functions/session");
 
-        const sdpResponse = await fetch("/.netlify/functions/session", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/sdp"
-          },
-          body: offer.sdp
-        });
+if (!tokenResponse.ok) {
+  const errorText = await tokenResponse.text();
+  throw new Error("Token error: " + tokenResponse.status + "\n" + errorText);
+}
 
-        if (!sdpResponse.ok) {
-          const errorText = await sdpResponse.text();
-          throw new Error("Session/SDP error: " + sdpResponse.status + "\n" + errorText);
-        }
+const tokenData = await tokenResponse.json();
+const ephemeralKey = tokenData.value;
 
-        const answerSdp = await sdpResponse.text();
+if (!ephemeralKey) {
+  throw new Error("No ephemeral token received from server.");
+}
+
+const sdpResponse = await fetch("https://api.openai.com/v1/realtime/calls", {
+  method: "POST",
+  headers: {
+    Authorization: "Bearer " + ephemeralKey,
+    "Content-Type": "application/sdp"
+  },
+  body: offer.sdp
+});
+
+if (!sdpResponse.ok) {
+  const errorText = await sdpResponse.text();
+  throw new Error("SDP error: " + sdpResponse.status + "\n" + errorText);
+}
+
+const answerSdp = await sdpResponse.text();
 
         await pc.setRemoteDescription({
           type: "answer",
