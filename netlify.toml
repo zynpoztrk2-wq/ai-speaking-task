@@ -1,0 +1,31 @@
+# netlify.toml
+# ─────────────────────────────────────────────────────────────────────────────
+# Netlify build & routing configuration for the AI Speaking Task project.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[build]
+  # The functions directory where your serverless functions live
+  functions = "netlify/functions"
+  # No build step needed – the project is plain HTML/JS
+  publish = "."
+
+[functions]
+  # Use Node.js 18 so that the built-in `fetch` API is available
+  node_bundler = "esbuild"
+
+# ── Clean URL routing ──────────────────────────────────────────────────────
+# Maps /api/session → /.netlify/functions/session  (hides the internal path)
+[[redirects]]
+  from   = "/api/session"
+  to     = "/.netlify/functions/session"
+  status = 200
+
+# ── Security headers ──────────────────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options        = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    # Allow microphone access (required for WebRTC)
+    Permissions-Policy     = "microphone=(*)"
