@@ -382,7 +382,8 @@ End the task after the final decision by saying:
         dc.onclose = function() {
           setStatus("Disconnected", "");
         };
-
+const offer = await pc.createOffer();
+await pc.setLocalDescription(offer);
 const tokenResponse = await fetch("/.netlify/functions/session");
 
 if (!tokenResponse.ok) {
