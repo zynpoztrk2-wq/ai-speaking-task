@@ -4,87 +4,180 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Spoken English Task</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --bg: #f5f2ee; --surface: #fdfcfa; --border: #ddd8d0; --ink: #1a1714;
-      --ink-muted: #6b6560; --accent: #2d5a3d; --accent-lt: #e8f0eb;
-      --warn: #8b3a2a; --warn-lt: #f5ece9; --active: #1e3d2a;
-      --radius: 6px; --shadow: 0 2px 16px rgba(0,0,0,0.07);
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Crimson Pro', Georgia, serif; background: var(--bg); color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1.25rem; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 560px; padding: 3rem 2.5rem 2.5rem; display: flex; flex-direction: column; gap: 2rem; }
-    .header { text-align: center; }
-    .badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); background: var(--accent-lt); border: 1px solid #c0d4c6; border-radius: 2px; padding: 0.25em 0.65em; margin-bottom: 1.1rem; }
-    h1 { font-size: 1.75rem; font-weight: 400; line-height: 1.25; letter-spacing: -0.01em; }
-    h1 em { font-style: italic; color: var(--accent); }
-    .subtitle { margin-top: 0.6rem; font-size: 1.05rem; color: var(--ink-muted); font-style: italic; line-height: 1.5; }
-    .instructions { background: var(--accent-lt); border: 1px solid #c0d4c6; border-radius: var(--radius); padding: 1.1rem 1.3rem; }
-    .instructions p { font-size: 1rem; line-height: 1.65; color: #2a4a35; }
-    .instructions p + p { margin-top: 0.5rem; }
-    .instructions strong { font-weight: 600; }
-    .visualiser-wrap { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 1.5rem 0 0.5rem; }
-    .orb { width: 72px; height: 72px; border-radius: 50%; background: var(--border); position: relative; transition: background 0.4s ease; }
-    .orb::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid transparent; transition: border-color 0.4s ease; }
-    body.listening .orb { background: var(--accent); animation: pulse-listen 1.8s ease-in-out infinite; }
-    body.listening .orb::after { border-color: var(--accent); animation: ring-expand 1.8s ease-in-out infinite; }
-    body.speaking .orb { background: #4a7c6f; animation: pulse-speak 0.9s ease-in-out infinite alternate; }
-    body.speaking .orb::after { border-color: #4a7c6f; animation: ring-expand 0.9s ease-in-out infinite; }
-    body.connecting .orb { background: #b0a89a; animation: spin-glow 1.2s linear infinite; }
-    body.error .orb { background: var(--warn); }
-    body.error .orb::after { border-color: var(--warn); }
-    @keyframes pulse-listen { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.9; } }
-    @keyframes pulse-speak { from { transform: scale(1); } to { transform: scale(1.12); } }
-    @keyframes ring-expand { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.45); opacity: 0; } }
-    @keyframes spin-glow { 0% { box-shadow: 0 0 0 0 rgba(100,90,80,0.4); } 50% { box-shadow: 0 0 16px 4px rgba(100,90,80,0.15); } 100% { box-shadow: 0 0 0 0 rgba(100,90,80,0.4); } }
-    .status-label { font-family: 'DM Mono', monospace; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-muted); transition: color 0.3s; }
-    body.listening .status-label { color: var(--accent); }
-    body.speaking .status-label { color: #4a7c6f; }
-    body.connecting .status-label { color: #8a7e72; }
-    body.error .status-label { color: var(--warn); }
-    .transcript-wrap { border: 1px solid var(--border); border-radius: var(--radius); background: #f8f6f3; min-height: 100px; max-height: 220px; overflow-y: auto; padding: 0.85rem 1rem; }
-    .transcript-wrap:empty::before { content: 'The conversation will appear here…'; color: var(--ink-muted); font-style: italic; font-size: 0.95rem; }
-    .turn { font-size: 0.97rem; line-height: 1.55; padding: 0.3rem 0; }
-    .turn + .turn { border-top: 1px solid var(--border); margin-top: 0.4rem; padding-top: 0.65rem; }
-    .turn .speaker { font-family: 'DM Mono', monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.2rem; }
-    .turn.ai .speaker { color: var(--accent); }
-    .turn.human .speaker { color: #7a6d60; }
-    .turn.ai .text { color: var(--ink); }
-    .turn.human .text { color: #5a5048; font-style: italic; }
+    body { font-family: Georgia, serif; background: #f5f2ee; color: #1a1714; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; margin: 0; }
+    .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; width: 100%; max-width: 540px; padding: 2.5rem 2rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    h1 { font-size: 1.6rem; font-weight: normal; margin: 0 0 0.4rem; text-align: center; }
+    .subtitle { color: #666; font-style: italic; text-align: center; margin-bottom: 1.5rem; }
+    .info-box { background: #e8f0eb; border: 1px solid #b0cbb8; border-radius: 6px; padding: 1rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.97rem; line-height: 1.6; }
+    .status-area { text-align: center; padding: 1.5rem 0; }
+    .orb { width: 64px; height: 64px; border-radius: 50%; background: #ccc; margin: 0 auto 0.8rem; transition: background 0.3s; }
+    .orb.connecting { background: #aaa; }
+    .orb.listening  { background: #2d5a3d; }
+    .orb.speaking   { background: #4a7c6f; }
+    .orb.error      { background: #8b3a2a; }
+    .status-text { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: #666; }
+    .transcript-box { border: 1px solid #ddd; border-radius: 6px; background: #fafaf8; min-height: 90px; max-height: 200px; overflow-y: auto; padding: 0.8rem 1rem; margin-bottom: 1.2rem; font-size: 0.95rem; line-height: 1.5; color: #555; font-style: italic; }
+    .turn { margin-bottom: 0.6rem; font-style: normal; }
+    .turn .who { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #999; margin-bottom: 0.15rem; }
+    .turn.ai .who { color: #2d5a3d; }
     .btn-row { display: flex; gap: 0.75rem; }
-    button { flex: 1; font-family: 'Crimson Pro', serif; font-size: 1.05rem; padding: 0.75rem 1rem; border-radius: var(--radius); border: none; cursor: pointer; transition: transform 0.1s, opacity 0.2s, background 0.2s; letter-spacing: 0.02em; }
-    button:active { transform: scale(0.97); }
-    button:disabled { opacity: 0.35; cursor: not-allowed; }
-    #btn-start { background: var(--accent); color: #fff; font-weight: 600; }
-    #btn-start:hover:not(:disabled) { background: var(--active); }
-    #btn-stop { background: transparent; color: var(--warn); border: 1px solid #d4a89a; }
-    #btn-stop:hover:not(:disabled) { background: var(--warn-lt); }
-    #error-msg { display: none; background: var(--warn-lt); border: 1px solid #d4a89a; border-radius: var(--radius); padding: 0.75rem 1rem; color: var(--warn); font-size: 0.95rem; line-height: 1.5; }
-    footer { margin-top: 2rem; font-size: 0.8rem; color: #a09890; font-family: 'DM Mono', monospace; letter-spacing: 0.04em; text-align: center; }
-    .transcript-wrap::-webkit-scrollbar { width: 5px; }
-    .transcript-wrap::-webkit-scrollbar-track { background: transparent; }
-    .transcript-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    button { flex: 1; padding: 0.8rem; border: none; border-radius: 6px; font-size: 1rem; font-family: Georgia, serif; cursor: pointer; }
+    #btn-start { background: #2d5a3d; color: #fff; }
+    #btn-start:hover { background: #1e3d2a; }
+    #btn-start:disabled { background: #999; cursor: not-allowed; }
+    #btn-stop { background: #fff; color: #8b3a2a; border: 1px solid #c8a09a; }
+    #btn-stop:disabled { opacity: 0.4; cursor: not-allowed; }
+    .error-box { display: none; background: #f5ece9; border: 1px solid #c8a09a; border-radius: 6px; padding: 0.7rem 1rem; color: #8b3a2a; font-size: 0.9rem; margin-bottom: 1rem; }
   </style>
 </head>
 <body>
 <div class="card">
-  <div class="header">
-    <div class="badge">Spoken English Task</div>
-    <h1>Committee <em>Decision</em> Task</h1>
-    <p class="subtitle">A short oral discussion task with an AI speaking partner</p>
+  <h1>Committee Decision Task</h1>
+  <p class="subtitle">A short oral discussion task with an AI speaking partner</p>
+  <div class="info-box">
+    <strong>How it works:</strong> Click <em>Start Task</em>, allow microphone access, and speak when prompted. No typing needed.
   </div>
-  <div class="instructions">
-    <p><strong>How it works:</strong> Click <em>Start Task</em>, allow microphone access, and speak naturally when prompted. The AI will guide you through several discussion questions one by one.</p>
-    <p>There is no typing required. <strong>Just speak.</strong> The task takes approximately 5–8 minutes.</p>
-  </div>
-  <div class="visualiser-wrap">
+  <div class="status-area">
     <div class="orb" id="orb"></div>
-    <span class="status-label" id="status-label">Ready</span>
+    <div class="status-text" id="status-text">Ready</div>
   </div>
-  <div class="transcript-wrap" id="transcript" aria-live="polite"></div>
-  <div id="error-msg" role="alert"></div>
+  <div class="transcript-box" id="transcript">The conversation will appear here…</div>
+  <div class="error-box" id="error-box"></div>
   <div class="btn-row">
-    <button id="btn-start">
+    <button id="btn-start">&#9658; Start Task</button>
+    <button id="btn-stop" disabled>&#9632; Stop</button>
+  </div>
+</div>
+<audio id="ai-audio" autoplay playsinline style="display:none"></audio>
+<script>
+var pc = null, dc = null, stream = null, triggered = false;
+
+function setStatus(label, cls) {
+  document.getElementById('status-text').textContent = label;
+  document.getElementById('orb').className = 'orb ' + (cls || '');
+}
+
+function showError(msg) {
+  setStatus('Error', 'error');
+  var b = document.getElementById('error-box');
+  b.style.display = 'block';
+  b.textContent = msg;
+}
+
+function addMessage(who, text) {
+  if (!text || !text.trim()) return;
+  var box = document.getElementById('transcript');
+  if (box.textContent.indexOf('appear here') !== -1) box.innerHTML = '';
+  var turn = document.createElement('div'); turn.className = 'turn ' + who;
+  var lbl = document.createElement('div'); lbl.className = 'who';
+  lbl.textContent = who === 'ai' ? 'AI Partner' : 'You';
+  var body = document.createElement('div'); body.textContent = text.trim();
+  turn.appendChild(lbl); turn.appendChild(body);
+  box.appendChild(turn); box.scrollTop = box.scrollHeight;
+}
+
+function sendTrigger() {
+  if (triggered) return;
+  if (!dc || dc.readyState !== 'open') return;
+  triggered = true;
+  dc.send(JSON.stringify({ type: 'response.create', response: { modalities: ['audio', 'text'] } }));
+}
+
+document.getElementById('btn-start').addEventListener('click', function() {
+  document.getElementById('error-box').style.display = 'none';
+  document.getElementById('btn-start').disabled = true;
+  document.getElementById('btn-stop').disabled = false;
+  document.getElementById('transcript').innerHTML = '';
+  triggered = false;
+  setStatus('Connecting...', 'connecting');
+
+  fetch('/api/session', { method: 'POST' })
+    .then(function(r) {
+      if (!r.ok) throw new Error('Session error: ' + r.status);
+      return r.json();
+    })
+    .then(function(session) {
+      var token = session.client_secret && session.client_secret.value;
+      if (!token) throw new Error('No token received');
+      setStatus('Requesting microphone...', 'connecting');
+
+      return navigator.mediaDevices.getUserMedia({ audio: true }).then(function(s) {
+        stream = s;
+        pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+
+        pc.ontrack = function(e) {
+          if (e.streams && e.streams[0]) document.getElementById('ai-audio').srcObject = e.streams[0];
+        };
+
+        stream.getTracks().forEach(function(t) { pc.addTrack(t, stream); });
+
+        dc = pc.createDataChannel('oai-events');
+        var aiBuf = '', humanBuf = '';
+
+        dc.onopen = function() {
+          setStatus('Listening...', 'listening');
+          sendTrigger();
+        };
+
+        dc.onmessage = function(e) {
+          var msg; try { msg = JSON.parse(e.data); } catch(x) { return; }
+          if (msg.type === 'response.created') { setStatus('AI is speaking...', 'speaking'); aiBuf = ''; }
+          else if (msg.type === 'response.audio_transcript.delta' && msg.delta) { aiBuf += msg.delta; }
+          else if (msg.type === 'response.audio_transcript.done') { addMessage('ai', msg.transcript || aiBuf); aiBuf = ''; setStatus('Listening...', 'listening'); }
+          else if (msg.type === 'response.done') { if (aiBuf) { addMessage('ai', aiBuf); aiBuf = ''; } setStatus('Listening...', 'listening'); }
+          else if (msg.type === 'input_audio_buffer.speech_started') { setStatus('You are speaking...', 'listening'); humanBuf = ''; }
+          else if (msg.type === 'conversation.item.input_audio_transcription.completed') { addMessage('human', msg.transcript || humanBuf); humanBuf = ''; setStatus('AI is thinking...', 'speaking'); }
+          else if (msg.type === 'error') { showError('API error: ' + (msg.error ? msg.error.message : 'unknown')); }
+        };
+
+        dc.onclose = function() { setStatus('Disconnected', ''); };
+
+        return pc.createOffer().then(function(offer) {
+          return pc.setLocalDescription(offer).then(function() {
+            var model = session.model || 'gpt-4o-realtime-preview-2024-12-17';
+            return fetch('https://api.openai.com/v1/realtime?model=' + encodeURIComponent(model), {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/sdp' },
+              body: offer.sdp
+            });
+          });
+        });
+      });
+    })
+    .then(function(sdpRes) {
+      if (!sdpRes.ok) throw new Error('SDP error: ' + sdpRes.status);
+      return sdpRes.text();
+    })
+    .then(function(answer) {
+      return pc.setRemoteDescription({ type: 'answer', sdp: answer });
+    })
+    .then(function() {
+      setStatus('Connecting to AI...', 'connecting');
+      var poll = setInterval(function() {
+        if (!dc) { clearInterval(poll); return; }
+        if (dc.readyState === 'open') { clearInterval(poll); setStatus('Listening...', 'listening'); sendTrigger(); }
+        if (dc.readyState === 'closed') clearInterval(poll);
+      }, 300);
+    })
+    .catch(function(err) {
+      console.error(err);
+      showError(err.message);
+      document.getElementById('btn-start').disabled = false;
+      document.getElementById('btn-stop').disabled = true;
+      setStatus('Ready', '');
+    });
+});
+
+document.getElementById('btn-stop').addEventListener('click', function() {
+  if (dc) { try { dc.close(); } catch(e) {} dc = null; }
+  if (pc) { try { pc.close(); } catch(e) {} pc = null; }
+  if (stream) { stream.getTracks().forEach(function(t) { t.stop(); }); stream = null; }
+  document.getElementById('ai-audio').srcObject = null;
+  document.getElementById('btn-start').disabled = false;
+  document.getElementById('btn-stop').disabled = true;
+  setStatus('Ready', '');
+});
+</script>
+</body>
+</html>
