@@ -5,179 +5,445 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Spoken English Task</title>
   <style>
-    body { font-family: Georgia, serif; background: #f5f2ee; color: #1a1714; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; margin: 0; }
-    .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; width: 100%; max-width: 540px; padding: 2.5rem 2rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-    h1 { font-size: 1.6rem; font-weight: normal; margin: 0 0 0.4rem; text-align: center; }
-    .subtitle { color: #666; font-style: italic; text-align: center; margin-bottom: 1.5rem; }
-    .info-box { background: #e8f0eb; border: 1px solid #b0cbb8; border-radius: 6px; padding: 1rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.97rem; line-height: 1.6; }
-    .status-area { text-align: center; padding: 1.5rem 0; }
-    .orb { width: 64px; height: 64px; border-radius: 50%; background: #ccc; margin: 0 auto 0.8rem; transition: background 0.3s; }
+    body {
+      font-family: Georgia, serif;
+      background: #f5f2ee;
+      color: #1a1714;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      margin: 0;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 560px;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: normal;
+      margin: 0 0 0.4rem;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      font-style: italic;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-box {
+      background: #e8f0eb;
+      border: 1px solid #b0cbb8;
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.97rem;
+      line-height: 1.6;
+    }
+
+    .status-area {
+      text-align: center;
+      padding: 1.5rem 0;
+    }
+
+    .orb {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #ccc;
+      margin: 0 auto 0.8rem;
+      transition: background 0.3s;
+    }
+
     .orb.connecting { background: #aaa; }
     .orb.listening  { background: #2d5a3d; }
     .orb.speaking   { background: #4a7c6f; }
     .orb.error      { background: #8b3a2a; }
-    .status-text { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: #666; }
-    .transcript-box { border: 1px solid #ddd; border-radius: 6px; background: #fafaf8; min-height: 90px; max-height: 200px; overflow-y: auto; padding: 0.8rem 1rem; margin-bottom: 1.2rem; font-size: 0.95rem; line-height: 1.5; color: #555; font-style: italic; }
-    .turn { margin-bottom: 0.6rem; font-style: normal; }
-    .turn .who { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #999; margin-bottom: 0.15rem; }
+
+    .status-text {
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #666;
+    }
+
+    .transcript-box {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #fafaf8;
+      min-height: 90px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 0.8rem 1rem;
+      margin-bottom: 1.2rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #555;
+      font-style: italic;
+    }
+
+    .turn {
+      margin-bottom: 0.6rem;
+      font-style: normal;
+    }
+
+    .turn .who {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #999;
+      margin-bottom: 0.15rem;
+    }
+
     .turn.ai .who { color: #2d5a3d; }
-    .btn-row { display: flex; gap: 0.75rem; }
-    button { flex: 1; padding: 0.8rem; border: none; border-radius: 6px; font-size: 1rem; font-family: Georgia, serif; cursor: pointer; }
-    #btn-start { background: #2d5a3d; color: #fff; }
+
+    .btn-row {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    button {
+      flex: 1;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-family: Georgia, serif;
+      cursor: pointer;
+    }
+
+    #btn-start {
+      background: #2d5a3d;
+      color: #fff;
+    }
+
     #btn-start:hover { background: #1e3d2a; }
-    #btn-start:disabled { background: #999; cursor: not-allowed; }
-    #btn-stop { background: #fff; color: #8b3a2a; border: 1px solid #c8a09a; }
-    #btn-stop:disabled { opacity: 0.4; cursor: not-allowed; }
-    .error-box { display: none; background: #f5ece9; border: 1px solid #c8a09a; border-radius: 6px; padding: 0.7rem 1rem; color: #8b3a2a; font-size: 0.9rem; margin-bottom: 1rem; }
+
+    #btn-start:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+
+    #btn-stop {
+      background: #fff;
+      color: #8b3a2a;
+      border: 1px solid #c8a09a;
+    }
+
+    #btn-stop:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .error-box {
+      display: none;
+      background: #f5ece9;
+      border: 1px solid #c8a09a;
+      border-radius: 6px;
+      padding: 0.7rem 1rem;
+      color: #8b3a2a;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
+
 <body>
-<div class="card">
-  <h1>Committee Decision Task</h1>
-  <p class="subtitle">A short oral discussion task with an AI speaking partner</p>
-  <div class="info-box">
-    <strong>How it works:</strong> Click <em>Start Task</em>, allow microphone access, and speak when prompted. No typing needed.
+  <div class="card">
+    <h1>Committee Decision Task</h1>
+    <p class="subtitle">A short oral discussion task with an AI speaking partner</p>
+
+    <div class="info-box">
+      <strong>How it works:</strong> Click <em>Start Task</em>, allow microphone access, and speak when prompted. No typing needed.
+    </div>
+
+    <div class="status-area">
+      <div class="orb" id="orb"></div>
+      <div class="status-text" id="status-text">Ready</div>
+    </div>
+
+    <div class="transcript-box" id="transcript">The conversation will appear here…</div>
+    <div class="error-box" id="error-box"></div>
+
+    <div class="btn-row">
+      <button id="btn-start">&#9658; Start Task</button>
+      <button id="btn-stop" disabled>&#9632; Stop</button>
+    </div>
   </div>
-  <div class="status-area">
-    <div class="orb" id="orb"></div>
-    <div class="status-text" id="status-text">Ready</div>
-  </div>
-  <div class="transcript-box" id="transcript">The conversation will appear here…</div>
-  <div class="error-box" id="error-box"></div>
-  <div class="btn-row">
-    <button id="btn-start">&#9658; Start Task</button>
-    <button id="btn-stop" disabled>&#9632; Stop</button>
-  </div>
-</div>
-<audio id="ai-audio" autoplay playsinline style="display:none"></audio>
-<script>
-var pc = null, dc = null, stream = null, triggered = false;
 
-function setStatus(label, cls) {
-  document.getElementById('status-text').textContent = label;
-  document.getElementById('orb').className = 'orb ' + (cls || '');
-}
+  <audio id="ai-audio" autoplay playsinline style="display:none"></audio>
 
-function showError(msg) {
-  setStatus('Error', 'error');
-  var b = document.getElementById('error-box');
-  b.style.display = 'block';
-  b.textContent = msg;
-}
+  <script>
+    let pc = null;
+    let dc = null;
+    let stream = null;
+    let triggered = false;
+    let aiBuffer = "";
+    let humanBuffer = "";
 
-function addMessage(who, text) {
-  if (!text || !text.trim()) return;
-  var box = document.getElementById('transcript');
-  if (box.textContent.indexOf('appear here') !== -1) box.innerHTML = '';
-  var turn = document.createElement('div'); turn.className = 'turn ' + who;
-  var lbl = document.createElement('div'); lbl.className = 'who';
-  lbl.textContent = who === 'ai' ? 'AI Partner' : 'You';
-  var body = document.createElement('div'); body.textContent = text.trim();
-  turn.appendChild(lbl); turn.appendChild(body);
-  box.appendChild(turn); box.scrollTop = box.scrollHeight;
-}
+    const startBtn = document.getElementById("btn-start");
+    const stopBtn = document.getElementById("btn-stop");
+    const statusText = document.getElementById("status-text");
+    const orb = document.getElementById("orb");
+    const transcriptBox = document.getElementById("transcript");
+    const errorBox = document.getElementById("error-box");
+    const audioEl = document.getElementById("ai-audio");
 
-function sendTrigger() {
-  if (triggered) return;
-  if (!dc || dc.readyState !== 'open') return;
-  triggered = true;
-  dc.send(JSON.stringify({ type: 'response.create', response: { modalities: ['audio', 'text'] } }));
-}
+    const TASK_INSTRUCTIONS = `
+You are an AI speaking partner for a short spoken English task.
 
-document.getElementById('btn-start').addEventListener('click', function() {
-  document.getElementById('error-box').style.display = 'none';
-  document.getElementById('btn-start').disabled = true;
-  document.getElementById('btn-stop').disabled = false;
-  document.getElementById('transcript').innerHTML = '';
-  triggered = false;
-  setStatus('Connecting...', 'connecting');
+This must be a real oral conversation. The participant should answer by speaking, not by typing.
 
-  fetch('/api/session', { method: 'POST' })
-    .then(function(r) {
-      if (!r.ok) throw new Error('Session error: ' + r.status);
-      return r.json();
-    })
-    .then(function(session) {
-      var token = session.client_secret && session.client_secret.value;
-      if (!token) throw new Error('No token received');
-      setStatus('Requesting microphone...', 'connecting');
+Do not present the task as a written instruction sheet.
+Do not list all steps.
+Do not correct grammar.
+Do not evaluate pronunciation, fluency, vocabulary, or accuracy.
+Do not provide model answers.
+Do not explain the research purpose.
+Keep your turns short, natural, and B2-level.
+Ask only one question at a time.
+Wait for the participant's answer before moving to the next question.
 
-      return navigator.mediaDevices.getUserMedia({ audio: true }).then(function(s) {
-        stream = s;
-        pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+Task scenario:
+The participant is a member of a small university committee. The committee can support only ONE student project this semester.
 
-        pc.ontrack = function(e) {
-          if (e.streams && e.streams[0]) document.getElementById('ai-audio').srcObject = e.streams[0];
+The three options are:
+1. A mental health workshop series for students
+2. A campus recycling campaign
+3. A free online speaking club for students who want to improve their English
+
+Begin with this exact opening:
+"Hi. Let’s start the speaking task. Imagine that you are a member of a university committee. The committee can support only one student project this semester. The options are: a mental health workshop series, a campus recycling campaign, or a free online speaking club. Which project do you think should be supported first, and why?"
+
+After the participant answers, ask these main questions one by one:
+1. "Can you compare your chosen project with one of the other options?"
+2. "What could be one possible disadvantage of your chosen project?"
+3. "Who would benefit the most from this project?"
+4. "Now, what is your final decision? Please justify your answer."
+
+If the participant gives a very short answer, ask one brief follow-up question to encourage elaboration.
+
+End the task after the final decision by saying:
+"Thank you. The speaking task is complete."
+`;
+
+    function setStatus(label, cls) {
+      statusText.textContent = label;
+      orb.className = "orb " + (cls || "");
+    }
+
+    function showError(msg) {
+      setStatus("Error", "error");
+      errorBox.style.display = "block";
+      errorBox.textContent = msg;
+    }
+
+    function clearError() {
+      errorBox.style.display = "none";
+      errorBox.textContent = "";
+    }
+
+    function addMessage(who, text) {
+      if (!text || !text.trim()) return;
+
+      if (transcriptBox.textContent.includes("appear here")) {
+        transcriptBox.innerHTML = "";
+      }
+
+      const turn = document.createElement("div");
+      turn.className = "turn " + who;
+
+      const label = document.createElement("div");
+      label.className = "who";
+      label.textContent = who === "ai" ? "AI Partner" : "You";
+
+      const body = document.createElement("div");
+      body.textContent = text.trim();
+
+      turn.appendChild(label);
+      turn.appendChild(body);
+      transcriptBox.appendChild(turn);
+      transcriptBox.scrollTop = transcriptBox.scrollHeight;
+    }
+
+    function sendInitialResponse() {
+      if (triggered) return;
+      if (!dc || dc.readyState !== "open") return;
+
+      triggered = true;
+
+      dc.send(JSON.stringify({
+        type: "response.create",
+        response: {
+          modalities: ["audio", "text"],
+          instructions: TASK_INSTRUCTIONS
+        }
+      }));
+    }
+
+    async function startTask() {
+      try {
+        clearError();
+        transcriptBox.innerHTML = "";
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        triggered = false;
+        aiBuffer = "";
+        humanBuffer = "";
+
+        setStatus("Requesting microphone...", "connecting");
+
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        setStatus("Connecting...", "connecting");
+
+        pc = new RTCPeerConnection();
+
+        pc.ontrack = function(event) {
+          if (event.streams && event.streams[0]) {
+            audioEl.srcObject = event.streams[0];
+          }
         };
 
-        stream.getTracks().forEach(function(t) { pc.addTrack(t, stream); });
+        stream.getTracks().forEach(function(track) {
+          pc.addTrack(track, stream);
+        });
 
-        dc = pc.createDataChannel('oai-events');
-        var aiBuf = '', humanBuf = '';
+        dc = pc.createDataChannel("oai-events");
 
         dc.onopen = function() {
-          setStatus('Listening...', 'listening');
-          sendTrigger();
+          setStatus("Connected", "listening");
+          sendInitialResponse();
         };
 
-        dc.onmessage = function(e) {
-          var msg; try { msg = JSON.parse(e.data); } catch(x) { return; }
-          if (msg.type === 'response.created') { setStatus('AI is speaking...', 'speaking'); aiBuf = ''; }
-          else if (msg.type === 'response.audio_transcript.delta' && msg.delta) { aiBuf += msg.delta; }
-          else if (msg.type === 'response.audio_transcript.done') { addMessage('ai', msg.transcript || aiBuf); aiBuf = ''; setStatus('Listening...', 'listening'); }
-          else if (msg.type === 'response.done') { if (aiBuf) { addMessage('ai', aiBuf); aiBuf = ''; } setStatus('Listening...', 'listening'); }
-          else if (msg.type === 'input_audio_buffer.speech_started') { setStatus('You are speaking...', 'listening'); humanBuf = ''; }
-          else if (msg.type === 'conversation.item.input_audio_transcription.completed') { addMessage('human', msg.transcript || humanBuf); humanBuf = ''; setStatus('AI is thinking...', 'speaking'); }
-          else if (msg.type === 'error') { showError('API error: ' + (msg.error ? msg.error.message : 'unknown')); }
+        dc.onmessage = function(event) {
+          let msg;
+
+          try {
+            msg = JSON.parse(event.data);
+          } catch (e) {
+            console.log("Non-JSON event:", event.data);
+            return;
+          }
+
+          console.log("Realtime event:", msg);
+
+          if (msg.type === "response.created") {
+            setStatus("AI is speaking...", "speaking");
+            aiBuffer = "";
+          }
+
+          if (msg.type === "response.audio_transcript.delta" && msg.delta) {
+            aiBuffer += msg.delta;
+          }
+
+          if (msg.type === "response.audio_transcript.done") {
+            addMessage("ai", msg.transcript || aiBuffer);
+            aiBuffer = "";
+            setStatus("Listening...", "listening");
+          }
+
+          if (msg.type === "response.done") {
+            if (aiBuffer) {
+              addMessage("ai", aiBuffer);
+              aiBuffer = "";
+            }
+            setStatus("Listening...", "listening");
+          }
+
+          if (msg.type === "input_audio_buffer.speech_started") {
+            setStatus("You are speaking...", "listening");
+            humanBuffer = "";
+          }
+
+          if (msg.type === "conversation.item.input_audio_transcription.completed") {
+            addMessage("human", msg.transcript || humanBuffer);
+            humanBuffer = "";
+            setStatus("AI is thinking...", "speaking");
+          }
+
+          if (msg.type === "error") {
+            const apiMessage = msg.error && msg.error.message ? msg.error.message : "Unknown API error";
+            showError("API error: " + apiMessage);
+          }
         };
 
-        dc.onclose = function() { setStatus('Disconnected', ''); };
+        dc.onclose = function() {
+          setStatus("Disconnected", "");
+        };
 
-        return pc.createOffer().then(function(offer) {
-          return pc.setLocalDescription(offer).then(function() {
-            var model = session.model || 'gpt-4o-realtime-preview-2024-12-17';
-            return fetch('https://api.openai.com/v1/realtime?model=' + encodeURIComponent(model), {
-              method: 'POST',
-              headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/sdp' },
-              body: offer.sdp
-            });
-          });
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        const sdpResponse = await fetch("/.netlify/functions/session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/sdp"
+          },
+          body: offer.sdp
         });
-      });
-    })
-    .then(function(sdpRes) {
-      if (!sdpRes.ok) throw new Error('SDP error: ' + sdpRes.status);
-      return sdpRes.text();
-    })
-    .then(function(answer) {
-      return pc.setRemoteDescription({ type: 'answer', sdp: answer });
-    })
-    .then(function() {
-      setStatus('Connecting to AI...', 'connecting');
-      var poll = setInterval(function() {
-        if (!dc) { clearInterval(poll); return; }
-        if (dc.readyState === 'open') { clearInterval(poll); setStatus('Listening...', 'listening'); sendTrigger(); }
-        if (dc.readyState === 'closed') clearInterval(poll);
-      }, 300);
-    })
-    .catch(function(err) {
-      console.error(err);
-      showError(err.message);
-      document.getElementById('btn-start').disabled = false;
-      document.getElementById('btn-stop').disabled = true;
-      setStatus('Ready', '');
-    });
-});
 
-document.getElementById('btn-stop').addEventListener('click', function() {
-  if (dc) { try { dc.close(); } catch(e) {} dc = null; }
-  if (pc) { try { pc.close(); } catch(e) {} pc = null; }
-  if (stream) { stream.getTracks().forEach(function(t) { t.stop(); }); stream = null; }
-  document.getElementById('ai-audio').srcObject = null;
-  document.getElementById('btn-start').disabled = false;
-  document.getElementById('btn-stop').disabled = true;
-  setStatus('Ready', '');
-});
-</script>
+        if (!sdpResponse.ok) {
+          const errorText = await sdpResponse.text();
+          throw new Error("Session/SDP error: " + sdpResponse.status + "\n" + errorText);
+        }
+
+        const answerSdp = await sdpResponse.text();
+
+        await pc.setRemoteDescription({
+          type: "answer",
+          sdp: answerSdp
+        });
+
+        setStatus("Connecting to AI...", "connecting");
+
+      } catch (err) {
+        console.error(err);
+        showError(err.message);
+        stopTask();
+      }
+    }
+
+    function stopTask() {
+      if (dc) {
+        try { dc.close(); } catch (e) {}
+        dc = null;
+      }
+
+      if (pc) {
+        try { pc.close(); } catch (e) {}
+        pc = null;
+      }
+
+      if (stream) {
+        stream.getTracks().forEach(function(track) {
+          track.stop();
+        });
+        stream = null;
+      }
+
+      audioEl.srcObject = null;
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+
+      if (errorBox.style.display !== "block") {
+        setStatus("Ready", "");
+      }
+    }
+
+    startBtn.addEventListener("click", startTask);
+    stopBtn.addEventListener("click", stopTask);
+  </script>
 </body>
 </html>
