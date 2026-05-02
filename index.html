@@ -277,20 +277,33 @@ End the task after the final decision by saying:
       transcriptBox.scrollTop = transcriptBox.scrollHeight;
     }
 
-    function sendInitialResponse() {
-      if (triggered) return;
-      if (!dc || dc.readyState !== "open") return;
+function sendInitialResponse() {
+  if (triggered) return;
+  if (!dc || dc.readyState !== "open") return;
 
-      triggered = true;
+  triggered = true;
 
-      dc.send(JSON.stringify({
-        type: "response.create",
-        response: {
-          modalities: ["audio", "text"],
-          instructions: TASK_INSTRUCTIONS
+  dc.send(JSON.stringify({
+    type: "conversation.item.create",
+    item: {
+      type: "message",
+      role: "user",
+      content: [
+        {
+          type: "input_text",
+          text: TASK_INSTRUCTIONS
         }
-      }));
+      ]
     }
+  }));
+
+  dc.send(JSON.stringify({
+    type: "response.create",
+    response: {
+      instructions: "Start the speaking task now. Speak aloud and ask the first question."
+    }
+  }));
+}
 
     async function startTask() {
       try {
