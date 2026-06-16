@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spoken English Task</title>
+  <title>Erasmus Destination Selection Task</title>
   <style>
     body {
       font-family: Georgia, serif;
@@ -49,6 +49,14 @@
       margin-bottom: 1.5rem;
       font-size: 0.97rem;
       line-height: 1.6;
+    }
+
+    .small-note {
+      color: #666;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-top: -0.5rem;
+      margin-bottom: 1.2rem;
     }
 
     .status-area {
@@ -161,12 +169,16 @@
 
 <body>
   <div class="card">
-    <h1>Committee Decision Task</h1>
-    <p class="subtitle">A short oral discussion task with an AI speaking partner</p>
+    <h1>Erasmus Destination Selection Task</h1>
+    <p class="subtitle">A spoken discussion task with an AI partner</p>
 
     <div class="info-box">
-      <strong>How it works:</strong> Click <em>Start Task</em>, allow microphone access, and speak when prompted. No typing needed.
+      <strong>How it works:</strong> Click <em>Start Task</em>, allow microphone access, and speak with the AI. You will choose one Erasmus destination and defend your decision. No typing is needed.
     </div>
+
+    <p class="small-note">
+      Please keep the task sheet open while speaking. Do not use a dictionary, translator, internet search, or prepared script.
+    </p>
 
     <div class="status-area">
       <div class="orb" id="orb"></div>
@@ -191,6 +203,7 @@
     let triggered = false;
     let aiBuffer = "";
     let humanBuffer = "";
+    let TASK_INSTRUCTIONS = "";
 
     const startBtn = document.getElementById("btn-start");
     const stopBtn = document.getElementById("btn-stop");
@@ -200,43 +213,15 @@
     const errorBox = document.getElementById("error-box");
     const audioEl = document.getElementById("ai-audio");
 
-    const TASK_INSTRUCTIONS = `
-You are an AI speaking partner for a short spoken English task.
+    async function loadTaskPrompt() {
+      const response = await fetch("/prompt.txt", { cache: "no-store" });
 
-This must be a real oral conversation. The participant should answer by speaking, not by typing.
+      if (!response.ok) {
+        throw new Error("Prompt file could not be loaded: " + response.status);
+      }
 
-Do not present the task as a written instruction sheet.
-Do not list all steps.
-Do not correct grammar.
-Do not evaluate pronunciation, fluency, vocabulary, or accuracy.
-Do not provide model answers.
-Do not explain the research purpose.
-Keep your turns short, natural, and B2-level.
-Ask only one question at a time.
-Wait for the participant's answer before moving to the next question.
-
-Task scenario:
-The participant is a member of a small university committee. The committee can support only ONE student project this semester.
-
-The three options are:
-1. A mental health workshop series for students
-2. A campus recycling campaign
-3. A free online speaking club for students who want to improve their English
-
-Begin with this exact opening:
-"Hi. Let’s start the speaking task. Imagine that you are a member of a university committee. The committee can support only one student project this semester. The options are: a mental health workshop series, a campus recycling campaign, or a free online speaking club. Which project do you think should be supported first, and why?"
-
-After the participant answers, ask these main questions one by one:
-1. "Can you compare your chosen project with one of the other options?"
-2. "What could be one possible disadvantage of your chosen project?"
-3. "Who would benefit the most from this project?"
-4. "Now, what is your final decision? Please justify your answer."
-
-If the participant gives a very short answer, ask one brief follow-up question to encourage elaboration.
-
-End the task after the final decision by saying:
-"Thank you. The speaking task is complete."
-`;
+      TASK_INSTRUCTIONS = await response.text();
+    }
 
     function setStatus(label, cls) {
       statusText.textContent = label;
@@ -277,33 +262,33 @@ End the task after the final decision by saying:
       transcriptBox.scrollTop = transcriptBox.scrollHeight;
     }
 
-function sendInitialResponse() {
-  if (triggered) return;
-  if (!dc || dc.readyState !== "open") return;
+    function sendInitialResponse() {
+      if (triggered) return;
+      if (!dc || dc.readyState !== "open") return;
 
-  triggered = true;
+      triggered = true;
 
-  dc.send(JSON.stringify({
-    type: "conversation.item.create",
-    item: {
-      type: "message",
-      role: "user",
-      content: [
-        {
-          type: "input_text",
-          text: TASK_INSTRUCTIONS
+      dc.send(JSON.stringify({
+        type: "conversation.item.create",
+        item: {
+          type: "message",
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: TASK_INSTRUCTIONS
+            }
+          ]
         }
-      ]
-    }
-  }));
+      }));
 
-  dc.send(JSON.stringify({
-    type: "response.create",
-    response: {
-      instructions: "Start the speaking task now. Speak aloud and ask the first question."
+      dc.send(JSON.stringify({
+        type: "response.create",
+        response: {
+          instructions: "Start the Erasmus Destination Selection Task now. Speak aloud and begin with the exact opening turn from the controlled prompt."
+        }
+      }));
     }
-  }));
-}
 
     async function startTask() {
       try {
@@ -314,6 +299,11 @@ function sendInitialResponse() {
         triggered = false;
         aiBuffer = "";
         humanBuffer = "";
+
+        if (!TASK_INSTRUCTIONS.trim()) {
+          setStatus("Loading task prompt...", "connecting");
+          await loadTaskPrompt();
+        }
 
         setStatus("Requesting microphone...", "connecting");
 
@@ -395,37 +385,39 @@ function sendInitialResponse() {
         dc.onclose = function() {
           setStatus("Disconnected", "");
         };
-const offer = await pc.createOffer();
-await pc.setLocalDescription(offer);
-const tokenResponse = await fetch("/.netlify/functions/session");
 
-if (!tokenResponse.ok) {
-  const errorText = await tokenResponse.text();
-  throw new Error("Token error: " + tokenResponse.status + "\n" + errorText);
-}
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
 
-const tokenData = await tokenResponse.json();
-const ephemeralKey = tokenData.value;
+        const tokenResponse = await fetch("/.netlify/functions/session");
 
-if (!ephemeralKey) {
-  throw new Error("No ephemeral token received from server.");
-}
+        if (!tokenResponse.ok) {
+          const errorText = await tokenResponse.text();
+          throw new Error("Token error: " + tokenResponse.status + "\n" + errorText);
+        }
 
-const sdpResponse = await fetch("https://api.openai.com/v1/realtime/calls", {
-  method: "POST",
-  headers: {
-    Authorization: "Bearer " + ephemeralKey,
-    "Content-Type": "application/sdp"
-  },
-  body: offer.sdp
-});
+        const tokenData = await tokenResponse.json();
+        const ephemeralKey = tokenData.value;
 
-if (!sdpResponse.ok) {
-  const errorText = await sdpResponse.text();
-  throw new Error("SDP error: " + sdpResponse.status + "\n" + errorText);
-}
+        if (!ephemeralKey) {
+          throw new Error("No ephemeral token received from server.");
+        }
 
-const answerSdp = await sdpResponse.text();
+        const sdpResponse = await fetch("https://api.openai.com/v1/realtime/calls", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + ephemeralKey,
+            "Content-Type": "application/sdp"
+          },
+          body: offer.sdp
+        });
+
+        if (!sdpResponse.ok) {
+          const errorText = await sdpResponse.text();
+          throw new Error("SDP error: " + sdpResponse.status + "\n" + errorText);
+        }
+
+        const answerSdp = await sdpResponse.text();
 
         await pc.setRemoteDescription({
           type: "answer",
