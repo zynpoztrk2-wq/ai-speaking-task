@@ -13,10 +13,17 @@ exports.handler = async function(event) {
     const sessionConfig = JSON.stringify({
       session: {
         type: "realtime",
-        model: "gpt-realtime",
-        audio: {
-          output: {
-            voice: "marin"
+model: "gpt-realtime",
+
+audio: {
+
+  output: {
+
+    voice: "cedar"
+
+  }
+
+}
           }
         }
       }
