@@ -1,10 +1,16 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Erasmus Destination Selection Task</title>
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Georgia, serif;
       background: #f5f2ee;
@@ -24,7 +30,7 @@
       width: 100%;
       max-width: 560px;
       padding: 2.5rem 2rem;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     }
 
     h1 {
@@ -73,10 +79,21 @@
       transition: background 0.3s;
     }
 
-    .orb.connecting { background: #aaa; }
-    .orb.listening  { background: #2d5a3d; }
-    .orb.speaking   { background: #4a7c6f; }
-    .orb.error      { background: #8b3a2a; }
+    .orb.connecting {
+      background: #aaa;
+    }
+
+    .orb.listening {
+      background: #2d5a3d;
+    }
+
+    .orb.speaking {
+      background: #4a7c6f;
+    }
+
+    .orb.error {
+      background: #8b3a2a;
+    }
 
     .status-text {
       font-size: 0.8rem;
@@ -113,7 +130,9 @@
       margin-bottom: 0.15rem;
     }
 
-    .turn.ai .who { color: #2d5a3d; }
+    .turn.ai .who {
+      color: #2d5a3d;
+    }
 
     .btn-row {
       display: flex;
@@ -135,7 +154,9 @@
       color: #fff;
     }
 
-    #btn-start:hover { background: #1e3d2a; }
+    #btn-start:hover {
+      background: #1e3d2a;
+    }
 
     #btn-start:disabled {
       background: #999;
@@ -173,11 +194,15 @@
     <p class="subtitle">A spoken discussion task with an AI partner</p>
 
     <div class="info-box">
-      <strong>How it works:</strong> Click <em>Start Task</em>, allow microphone access, and speak with the AI. You will choose one Erasmus destination and defend your decision. No typing is needed.
+      <strong>How it works:</strong>
+      Click <em>Start Task</em>, allow microphone access, and speak with the AI.
+      You will choose one Erasmus destination and defend your decision.
+      No typing is needed.
     </div>
 
     <p class="small-note">
-      Please keep the task sheet open while speaking. Do not use a dictionary, translator, internet search, or prepared script.
+      Please keep the task sheet open while speaking.
+      Do not use a dictionary, translator, internet search, or prepared script.
     </p>
 
     <div class="status-area">
@@ -185,7 +210,10 @@
       <div class="status-text" id="status-text">Ready</div>
     </div>
 
-    <div class="transcript-box" id="transcript">The conversation will appear here…</div>
+    <div class="transcript-box" id="transcript">
+      The conversation will appear here…
+    </div>
+
     <div class="error-box" id="error-box"></div>
 
     <div class="btn-row">
@@ -194,16 +222,30 @@
     </div>
   </div>
 
-  <audio id="ai-audio" autoplay playsinline style="display:none"></audio>
+  <audio
+    id="ai-audio"
+    autoplay
+    playsinline
+    style="display: none;"
+  ></audio>
 
   <script>
+    // Keep this false during the real study so students cannot
+    // read the live transcript.
+    // Change it to true only while testing or debugging.
+    const SHOW_TRANSCRIPT = false;
+
     let pc = null;
     let dc = null;
     let stream = null;
-    let triggered = false;
+    let TASK_INSTRUCTIONS = "";
+
+    let promptUpdateSent = false;
+    let initialResponseSent = false;
+    let aiIsSpeaking = false;
+
     let aiBuffer = "";
     let humanBuffer = "";
-    let TASK_INSTRUCTIONS = "";
 
     const startBtn = document.getElementById("btn-start");
     const stopBtn = document.getElementById("btn-stop");
@@ -213,14 +255,26 @@
     const errorBox = document.getElementById("error-box");
     const audioEl = document.getElementById("ai-audio");
 
+    if (!SHOW_TRANSCRIPT) {
+      transcriptBox.style.display = "none";
+    }
+
     async function loadTaskPrompt() {
-      const response = await fetch("/prompt.txt", { cache: "no-store" });
+      const response = await fetch("/prompt.txt", {
+        cache: "no-store"
+      });
 
       if (!response.ok) {
-        throw new Error("Prompt file could not be loaded: " + response.status);
+        throw new Error(
+          "Prompt file could not be loaded: " + response.status
+        );
       }
 
       TASK_INSTRUCTIONS = await response.text();
+
+      if (!TASK_INSTRUCTIONS.trim()) {
+        throw new Error("The prompt.txt file is empty.");
+      }
     }
 
     function setStatus(label, cls) {
@@ -228,10 +282,10 @@
       orb.className = "orb " + (cls || "");
     }
 
-    function showError(msg) {
+    function showError(message) {
       setStatus("Error", "error");
       errorBox.style.display = "block";
-      errorBox.textContent = msg;
+      errorBox.textContent = message;
     }
 
     function clearError() {
@@ -240,7 +294,9 @@
     }
 
     function addMessage(who, text) {
-      if (!text || !text.trim()) return;
+      if (!SHOW_TRANSCRIPT || !text || !text.trim()) {
+        return;
+      }
 
       if (transcriptBox.textContent.includes("appear here")) {
         transcriptBox.innerHTML = "";
@@ -262,41 +318,60 @@
       transcriptBox.scrollTop = transcriptBox.scrollHeight;
     }
 
+    function sendSessionInstructions() {
+      if (promptUpdateSent) {
+        return;
+      }
+
+      if (!dc || dc.readyState !== "open") {
+        return;
+      }
+
+      promptUpdateSent = true;
+
+      dc.send(JSON.stringify({
+        type: "session.update",
+        session: {
+          type: "realtime",
+          instructions: TASK_INSTRUCTIONS
+        }
+      }));
+
+      setStatus("Preparing task...", "connecting");
+    }
+
     function sendInitialResponse() {
-      if (triggered) return;
-      if (!dc || dc.readyState !== "open") return;
+      if (initialResponseSent) {
+        return;
+      }
 
-      triggered = true;
+      if (!dc || dc.readyState !== "open") {
+        return;
+      }
 
-      dc.send(JSON.stringify({
-        type: "conversation.item.create",
-        item: {
-          type: "message",
-          role: "user",
-          content: [
-            {
-              type: "input_text",
-              text: TASK_INSTRUCTIONS
-            }
-          ]
-        }
-      }));
+      initialResponseSent = true;
 
       dc.send(JSON.stringify({
-        type: "response.create",
-        response: {
-          instructions: "Start the Erasmus Destination Selection Task now. Speak aloud and begin with the exact opening turn from the controlled prompt."
-        }
+        type: "response.create"
       }));
+
+      setStatus("AI is starting...", "speaking");
     }
 
     async function startTask() {
       try {
         clearError();
-        transcriptBox.innerHTML = "";
+
+        if (SHOW_TRANSCRIPT) {
+          transcriptBox.innerHTML = "";
+        }
+
         startBtn.disabled = true;
         stopBtn.disabled = false;
-        triggered = false;
+
+        promptUpdateSent = false;
+        initialResponseSent = false;
+        aiIsSpeaking = false;
         aiBuffer = "";
         humanBuffer = "";
 
@@ -307,54 +382,87 @@
 
         setStatus("Requesting microphone...", "connecting");
 
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: true
+        });
 
         setStatus("Connecting...", "connecting");
 
         pc = new RTCPeerConnection();
 
-        pc.ontrack = function(event) {
-          if (event.streams && event.streams[0]) {
-            audioEl.srcObject = event.streams[0];
+        pc.onconnectionstatechange = function () {
+          if (!pc) {
+            return;
+          }
+
+          if (pc.connectionState === "failed") {
+            showError(
+              "The AI connection failed. Please stop and try again."
+            );
+          }
+
+          if (pc.connectionState === "disconnected") {
+            setStatus("Disconnected", "");
           }
         };
 
-        stream.getTracks().forEach(function(track) {
+        pc.ontrack = function (event) {
+          if (event.streams && event.streams[0]) {
+            audioEl.srcObject = event.streams[0];
+
+            audioEl.play().catch(function () {
+              // Autoplay is normally allowed because the session
+              // starts after a button click.
+            });
+          }
+        };
+
+        stream.getTracks().forEach(function (track) {
           pc.addTrack(track, stream);
         });
 
         dc = pc.createDataChannel("oai-events");
 
-        dc.onopen = function() {
-          setStatus("Connected", "listening");
-          sendInitialResponse();
+        dc.onopen = function () {
+          setStatus("Applying task prompt...", "connecting");
+          sendSessionInstructions();
         };
 
-        dc.onmessage = function(event) {
+        dc.onmessage = function (event) {
           let msg;
 
           try {
             msg = JSON.parse(event.data);
-          } catch (e) {
+          } catch (error) {
             console.log("Non-JSON event:", event.data);
             return;
           }
 
           console.log("Realtime event:", msg);
 
-          if (msg.type === "response.created") {
-            setStatus("AI is speaking...", "speaking");
-            aiBuffer = "";
+          if (msg.type === "session.updated") {
+            sendInitialResponse();
+            return;
           }
 
-          if (msg.type === "response.audio_transcript.delta" && msg.delta) {
+          if (msg.type === "response.created") {
+            aiIsSpeaking = true;
+            aiBuffer = "";
+            setStatus("AI is speaking...", "speaking");
+          }
+
+          if (
+            msg.type === "response.output_audio_transcript.delta" &&
+            msg.delta
+          ) {
             aiBuffer += msg.delta;
           }
 
-          if (msg.type === "response.audio_transcript.done") {
+          if (
+            msg.type === "response.output_audio_transcript.done"
+          ) {
             addMessage("ai", msg.transcript || aiBuffer);
             aiBuffer = "";
-            setStatus("Listening...", "listening");
           }
 
           if (msg.type === "response.done") {
@@ -362,59 +470,130 @@
               addMessage("ai", aiBuffer);
               aiBuffer = "";
             }
+
+            aiIsSpeaking = false;
             setStatus("Listening...", "listening");
           }
 
           if (msg.type === "input_audio_buffer.speech_started") {
-            setStatus("You are speaking...", "listening");
             humanBuffer = "";
+
+            if (!aiIsSpeaking) {
+              setStatus("You are speaking...", "listening");
+            }
           }
 
-          if (msg.type === "conversation.item.input_audio_transcription.completed") {
-            addMessage("human", msg.transcript || humanBuffer);
+          if (
+            msg.type ===
+              "conversation.item.input_audio_transcription.delta" &&
+            msg.delta
+          ) {
+            humanBuffer += msg.delta;
+          }
+
+          if (
+            msg.type ===
+            "conversation.item.input_audio_transcription.completed"
+          ) {
+            addMessage(
+              "human",
+              msg.transcript || humanBuffer
+            );
+
             humanBuffer = "";
             setStatus("AI is thinking...", "speaking");
           }
 
+          if (
+            msg.type ===
+            "conversation.item.input_audio_transcription.failed"
+          ) {
+            console.warn(
+              "Input transcription failed:",
+              msg
+            );
+
+            humanBuffer = "";
+          }
+
           if (msg.type === "error") {
-            const apiMessage = msg.error && msg.error.message ? msg.error.message : "Unknown API error";
+            const apiMessage =
+              msg.error && msg.error.message
+                ? msg.error.message
+                : "Unknown API error";
+
             showError("API error: " + apiMessage);
           }
         };
 
-        dc.onclose = function() {
-          setStatus("Disconnected", "");
+        dc.onclose = function () {
+          if (errorBox.style.display !== "block") {
+            setStatus("Disconnected", "");
+          }
+        };
+
+        dc.onerror = function (event) {
+          console.error("Data channel error:", event);
+          showError("The AI data connection had an error.");
         };
 
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
 
-        const tokenResponse = await fetch("/.netlify/functions/session");
+        const tokenResponse = await fetch(
+          "/.netlify/functions/session",
+          {
+            cache: "no-store"
+          }
+        );
 
         if (!tokenResponse.ok) {
           const errorText = await tokenResponse.text();
-          throw new Error("Token error: " + tokenResponse.status + "\n" + errorText);
+
+          throw new Error(
+            "Token error: " +
+              tokenResponse.status +
+              "\n" +
+              errorText
+          );
         }
 
         const tokenData = await tokenResponse.json();
-        const ephemeralKey = tokenData.value;
+
+        const ephemeralKey =
+          tokenData.value ||
+          (
+            tokenData.client_secret &&
+            tokenData.client_secret.value
+          );
 
         if (!ephemeralKey) {
-          throw new Error("No ephemeral token received from server.");
+          throw new Error(
+            "No ephemeral token received from server."
+          );
         }
 
-        const sdpResponse = await fetch("https://api.openai.com/v1/realtime/calls", {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + ephemeralKey,
-            "Content-Type": "application/sdp"
-          },
-          body: offer.sdp
-        });
+        const sdpResponse = await fetch(
+          "https://api.openai.com/v1/realtime/calls",
+          {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + ephemeralKey,
+              "Content-Type": "application/sdp"
+            },
+            body: offer.sdp
+          }
+        );
 
         if (!sdpResponse.ok) {
           const errorText = await sdpResponse.text();
-          throw new Error("SDP error: " + sdpResponse.status + "\n" + errorText);
+
+          throw new Error(
+            "SDP error: " +
+              sdpResponse.status +
+              "\n" +
+              errorText
+          );
         }
 
         const answerSdp = await sdpResponse.text();
@@ -425,29 +604,45 @@
         });
 
         setStatus("Connecting to AI...", "connecting");
-
-      } catch (err) {
-        console.error(err);
-        showError(err.message);
-        stopTask();
+      } catch (error) {
+        console.error(error);
+        showError(error.message || String(error));
+        stopTask(true);
       }
     }
 
-    function stopTask() {
+    function stopTask(keepError) {
+      aiIsSpeaking = false;
+      promptUpdateSent = false;
+      initialResponseSent = false;
+      aiBuffer = "";
+      humanBuffer = "";
+
       if (dc) {
-        try { dc.close(); } catch (e) {}
+        try {
+          dc.close();
+        } catch (error) {
+          console.warn(error);
+        }
+
         dc = null;
       }
 
       if (pc) {
-        try { pc.close(); } catch (e) {}
+        try {
+          pc.close();
+        } catch (error) {
+          console.warn(error);
+        }
+
         pc = null;
       }
 
       if (stream) {
-        stream.getTracks().forEach(function(track) {
+        stream.getTracks().forEach(function (track) {
           track.stop();
         });
+
         stream = null;
       }
 
@@ -455,13 +650,20 @@
       startBtn.disabled = false;
       stopBtn.disabled = true;
 
-      if (errorBox.style.display !== "block") {
+      if (
+        !keepError &&
+        errorBox.style.display !== "block"
+      ) {
         setStatus("Ready", "");
       }
     }
 
     startBtn.addEventListener("click", startTask);
-    stopBtn.addEventListener("click", stopTask);
+
+    stopBtn.addEventListener("click", function () {
+      stopTask(false);
+    });
   </script>
 </body>
 </html>
+```
