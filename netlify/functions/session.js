@@ -17,23 +17,6 @@ session: {
 type: "realtime",
 model: "gpt-realtime",
 audio: {
-input: {
-noise_reduction: {
-type: "far_field"
-},
-transcription: {
-model: "gpt-4o-mini-transcribe",
-language: "en"
-},
-turn_detection: {
-type: "server_vad",
-threshold: 0.5,
-prefix_padding_ms: 300,
-silence_duration_ms: 5000,
-create_response: true,
-interrupt_response: false
-}
-},
 output: {
 voice: "cedar"
 }
@@ -47,7 +30,7 @@ const response = await fetch(
   {
     method: "POST",
     headers: {
-      Authorization: "Bearer " + process.env.OPENAI_API_KEY,
+      "Authorization": "Bearer " + process.env.OPENAI_API_KEY,
       "Content-Type": "application/json"
     },
     body: sessionConfig
@@ -67,14 +50,19 @@ return {
 ```
 
 } catch (error) {
+console.error("Session function error:", error);
+
+```
 return {
-statusCode: 500,
-headers: {
-"Content-Type": "application/json"
-},
-body: JSON.stringify({
-error: "Failed to create ephemeral token: " + error.message
-})
+  statusCode: 500,
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    error: "Failed to create ephemeral token: " + String(error)
+  })
 };
+```
+
 }
 };
