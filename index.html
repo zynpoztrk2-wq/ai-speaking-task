@@ -454,11 +454,19 @@
             return;
           }
 
-          if (msg.type === "response.created") {
-            aiIsSpeaking = true;
-            aiBuffer = "";
-            setStatus("AI is speaking...", "speaking");
-          }
+      
+      if (msg.type === "response.created") {
+        aiIsSpeaking = true;
+        aiBuffer = "";
+        setStatus("AI is speaking...", "speaking");
+
+        if (stream) {
+          stream.getAudioTracks().forEach(function (track) {
+            track.enabled = false;
+          });
+        }
+      }
+
 
           if (
             msg.type === "response.output_audio_transcript.delta" &&
@@ -474,15 +482,22 @@
             aiBuffer = "";
           }
 
-          if (msg.type === "response.done") {
-            if (aiBuffer) {
-              addMessage("ai", aiBuffer);
-              aiBuffer = "";
-            }
+      if (msg.type === "response.done") {
+        if (aiBuffer) {
+          addMessage("ai", aiBuffer);
+          aiBuffer = "";
+        }
 
-            aiIsSpeaking = false;
-            setStatus("Listening...", "listening");
-          }
+        aiIsSpeaking = false;
+        setStatus("Listening...", "listening");
+
+        if (stream) {
+          stream.getAudioTracks().forEach(function (track) {
+            track.enabled = true;
+          });
+        }
+      }
+
 
           if (msg.type === "input_audio_buffer.speech_started") {
             humanBuffer = "";
