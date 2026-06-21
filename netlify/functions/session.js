@@ -24,7 +24,6 @@ voice: "cedar"
 }
 });
 
-```
 const response = await fetch(
   "https://api.openai.com/v1/realtime/client_secrets",
   {
@@ -47,12 +46,12 @@ return {
   },
   body: data
 };
-```
+
 
 } catch (error) {
 console.error("Session function error:", error);
 
-```
+
 return {
   statusCode: 500,
   headers: {
@@ -62,7 +61,6 @@ return {
     error: "Failed to create ephemeral token: " + String(error)
   })
 };
-```
 
 }
 };
