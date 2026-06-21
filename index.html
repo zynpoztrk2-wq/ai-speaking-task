@@ -1,5 +1,5 @@
-```html
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -186,6 +186,7 @@
       white-space: pre-wrap;
     }
   </style>
+
 </head>
 
 <body>
@@ -193,41 +194,39 @@
     <h1>Erasmus Destination Selection Task</h1>
     <p class="subtitle">A spoken discussion task with an AI partner</p>
 
-    <div class="info-box">
-      <strong>How it works:</strong>
-      Click <em>Start Task</em>, allow microphone access, and speak with the AI.
-      You will choose one Erasmus destination and defend your decision.
-      No typing is needed.
-    </div>
+```
+<div class="info-box">
+  <strong>How it works:</strong>
+  Click <em>Start Task</em>, allow microphone access, and speak with the AI.
+  You will choose one Erasmus destination and defend your decision.
+  No typing is needed.
+</div>
 
-    <p class="small-note">
-      Please keep the task sheet open while speaking.
-      Do not use a dictionary, translator, internet search, or prepared script.
-    </p>
+<p class="small-note">
+  Please keep the task sheet open while speaking.
+  Do not use a dictionary, translator, internet search, or prepared script.
+</p>
 
-    <div class="status-area">
-      <div class="orb" id="orb"></div>
-      <div class="status-text" id="status-text">Ready</div>
-    </div>
+<div class="status-area">
+  <div class="orb" id="orb"></div>
+  <div class="status-text" id="status-text">Ready</div>
+</div>
 
-    <div class="transcript-box" id="transcript">
-      The conversation will appear here…
-    </div>
+<div class="transcript-box" id="transcript">
+  The conversation will appear here…
+</div>
 
-    <div class="error-box" id="error-box"></div>
+<div class="error-box" id="error-box"></div>
 
-    <div class="btn-row">
-      <button id="btn-start">&#9658; Start Task</button>
-      <button id="btn-stop" disabled>&#9632; Stop</button>
-    </div>
+<div class="btn-row">
+  <button id="btn-start">&#9658; Start Task</button>
+  <button id="btn-stop" disabled>&#9632; Stop</button>
+</div>
+```
+
   </div>
 
-  <audio
-    id="ai-audio"
-    autoplay
-    playsinline
-    style="display: none;"
-  ></audio>
+<audio id="ai-audio" autoplay playsinline style="display: none;"></audio>
 
   <script>
     // Keep this false during the real study so students cannot
@@ -333,7 +332,19 @@
         type: "session.update",
         session: {
           type: "realtime",
-          instructions: TASK_INSTRUCTIONS
+          instructions: TASK_INSTRUCTIONS,
+          audio: {
+            input: {
+              turn_detection: {
+                type: "server_vad",
+                threshold: 0.5,
+                prefix_padding_ms: 300,
+                silence_duration_ms: 5000,
+                create_response: true,
+                interrupt_response: false
+              }
+            }
+          }
         }
       }));
 
@@ -664,6 +675,6 @@
       stopTask(false);
     });
   </script>
+
 </body>
 </html>
-```
