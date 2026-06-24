@@ -338,7 +338,7 @@ After completion or termination, use the completion or termination rules instead
 
 At the start, say exactly:
 
-“I’m planning to study abroad through the Erasmus programme, and I’d really appreciate your advice on these five destinations. Which city do you think would be the best option for me?”
+“Hi! I’m planning to study abroad through the Erasmus programme, and I’d really appreciate your advice on these five destinations. Which city do you think would be the best option for me?”
 
 Set:
 
