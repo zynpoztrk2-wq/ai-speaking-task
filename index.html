@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Erasmus Destination Selection Task</title>
+  <title>Erasmus City Selection</title>
 
   <style>
     * {
@@ -12,7 +12,7 @@
     }
 
     body {
-      font-family: Georgia, serif;
+      font-family: "Comic Sans MS", "Comic Sans", cursive;
       background: #f5f2ee;
       color: #1a1714;
       min-height: 100vh;
@@ -34,10 +34,26 @@
     }
 
     h1 {
-      font-size: 1.6rem;
-      font-weight: normal;
-      margin: 0 0 0.4rem;
+      width: fit-content;
+      max-width: 100%;
+      margin: 0 auto 0.7rem;
+      padding: 0.75rem 1.2rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #f6e8ef, #ece8f7, #e6f1ea);
+      border: 1px solid #ddcad5;
+      box-shadow: 0 4px 14px rgba(91, 67, 83, 0.10);
+      color: #4f3948;
+      font-size: 1.65rem;
+      font-weight: 600;
+      line-height: 1.2;
       text-align: center;
+      letter-spacing: 0.01em;
+    }
+
+    .title-sparkle {
+      color: #a66d8b;
+      font-size: 0.82em;
+      vertical-align: 0.08em;
     }
 
     .subtitle {
@@ -145,7 +161,7 @@
       border: none;
       border-radius: 6px;
       font-size: 1rem;
-      font-family: Georgia, serif;
+      font-family: "Comic Sans MS", "Comic Sans", cursive;
       cursor: pointer;
     }
 
@@ -191,19 +207,19 @@
 
 <body>
   <div class="card">
-    <h1>Erasmus Destination Selection Task</h1>
-    <p class="subtitle">A spoken discussion task with an AI partner</p>
+    <h1><span class="title-sparkle">✦</span> Erasmus City Selection <span class="title-sparkle">✦</span></h1>
+    <p class="subtitle">A spoken destination-comparison task with an AI friend</p>
 
 <div class="info-box">
   <strong>How it works:</strong>
   Click <em>Start Task</em>, allow microphone access, and speak with the AI.
-  You will choose one Erasmus destination and defend your decision.
-  No typing is needed.
+  Choose one destination—Westfall, Bridgeley, Portwell, San Marlo, or Crestford—and explain why it is the best overall option.
 </div>
 
 <p class="small-note">
-  Please keep the task sheet open while speaking.
-  Do not use a dictionary, translator, internet search, or prepared script.
+  Consider accommodation availability, communication in English, cost of living,
+  student life and social activities, free time, and university ranking.
+  Keep the task sheet open while speaking.
 </p>
 
 <div class="status-area">
@@ -218,7 +234,7 @@
 <div class="error-box" id="error-box"></div>
 
 <div class="btn-row">
-  <button id="btn-start">&#9658; Start Task</button>
+  <button id="btn-start" aria-label="Start the complex Erasmus destination selection task">&#9658; Start Task</button>
   <button id="btn-stop" disabled>&#9632; Stop</button>
 </div>
 
@@ -304,7 +320,7 @@
 
       const label = document.createElement("div");
       label.className = "who";
-      label.textContent = who === "ai" ? "AI Partner" : "You";
+      label.textContent = who === "ai" ? "AI Friend" : "You";
 
       const body = document.createElement("div");
       body.textContent = text.trim();
@@ -326,23 +342,14 @@
 
       promptUpdateSent = true;
 
+      // Only the prompt is sent here. All audio / turn-detection
+      // settings live in the session.js Netlify function, which is
+      // now the single source of truth for those values.
       dc.send(JSON.stringify({
         type: "session.update",
         session: {
           type: "realtime",
-          instructions: TASK_INSTRUCTIONS,
-          audio: {
-            input: {
-              turn_detection: {
-                type: "server_vad",
-                threshold: 0.5,
-                prefix_padding_ms: 300,
-                silence_duration_ms: 5000,
-                create_response: true,
-                interrupt_response: false
-              }
-            }
-          }
+          instructions: TASK_INSTRUCTIONS
         }
       }));
 
@@ -454,19 +461,17 @@
             return;
           }
 
-      
-      if (msg.type === "response.created") {
-        aiIsSpeaking = true;
-        aiBuffer = "";
-        setStatus("AI is speaking...", "speaking");
+          if (msg.type === "response.created") {
+            aiIsSpeaking = true;
+            aiBuffer = "";
+            setStatus("AI is speaking...", "speaking");
 
-        if (stream) {
-          stream.getAudioTracks().forEach(function (track) {
-            track.enabled = false;
-          });
-        }
-      }
-
+            if (stream) {
+              stream.getAudioTracks().forEach(function (track) {
+                track.enabled = false;
+              });
+            }
+          }
 
           if (
             msg.type === "response.output_audio_transcript.delta" &&
@@ -482,22 +487,21 @@
             aiBuffer = "";
           }
 
-      if (msg.type === "response.done") {
-        if (aiBuffer) {
-          addMessage("ai", aiBuffer);
-          aiBuffer = "";
-        }
+          if (msg.type === "response.done") {
+            if (aiBuffer) {
+              addMessage("ai", aiBuffer);
+              aiBuffer = "";
+            }
 
-        aiIsSpeaking = false;
-        setStatus("Listening...", "listening");
+            aiIsSpeaking = false;
+            setStatus("Listening...", "listening");
 
-        if (stream) {
-          stream.getAudioTracks().forEach(function (track) {
-            track.enabled = true;
-          });
-        }
-      }
-
+            if (stream) {
+              stream.getAudioTracks().forEach(function (track) {
+                track.enabled = true;
+              });
+            }
+          }
 
           if (msg.type === "input_audio_buffer.speech_started") {
             humanBuffer = "";
